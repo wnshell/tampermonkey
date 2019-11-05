@@ -9,8 +9,11 @@
 // ==/UserScript==
 
 (function(){
-    getAndScrollAlertingPanels();
-    setTimeout(function(){ refreshPanels(); }, REFRESH_TIME_MS);
+    //only run at top level page
+    if(window.location == window.parent.location){
+        getAndScrollAlertingPanels();
+        refreshPanels();
+    }
 })();
 
 var PANELS_PER_SCROLL = 6;
@@ -59,19 +62,24 @@ function scrollPanelsIntoView (alertingPanels, index, indexIncrement = 1){
     }, WAIT_DURATION_MS)
 }
 
-// if grafana refresh isn't working
+// because the grafana auto refresh sucks
 function refreshPanels(){
     setTimeout(function(){
         console.log("refreshing graphs...");
-        frames['guest-app'].contentDocument.getElementsByClassName('gf-timepicker-nav-btn')[0].click();
-        setTimeout(function(){
-            var applyButton = frames['guest-app'].contentDocument.getElementsByClassName("gf-form-btn btn-primary")[0];
-            if(applyButton){
-                applyButton.click();
+        var panelsIframe = frames['guest-app'];
+        if(panelsIframe){
+            var timePicker = panelsIframe.contentDocument.getElementsByClassName('time-picker-button-select')[0];
+            if(timePicker){
+                timePicker.click();
             }
-            refreshPanels();
-        }, 1000)
+            setTimeout(function(){
+                var applyButton = panelsIframe.contentDocument.getElementsByClassName("gf-form-select-box__option--is-selected")[0];
+                if(applyButton){
+                    applyButton.click();
+                }
+            }, 1000)
+        }
+        refreshPanels();
     }, REFRESH_TIME_MS);
 }
-
 
